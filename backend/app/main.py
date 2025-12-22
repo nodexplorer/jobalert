@@ -11,8 +11,11 @@ from app.models.user import User
 from app.models.job import Job
 from app.schemas.user import UserCreate, UserLogin, UserResponse, UserOnboarding
 from app.schemas.job import JobResponse
-from api.auth import router as auth_router
-from api.settings import router as settings_router
+from app.api.auth import router as auth_router
+from app.api.settings import router as settings_router
+from app.api.admin import router as admin_router
+from app.api.analytics import router as analytics_router
+# from app.api import settings, notification
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -31,6 +34,9 @@ app.add_middleware(
 # Routes
 app.include_router(auth_router, prefix="/api")
 app.include_router(settings_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
+# app.include_router(notification_router, prefix="/api"), tags=["notifications"])
 
 @app.post("/api/auth/register", response_model=UserResponse)
 def register(user: UserCreate, db: Session = Depends(get_db)):

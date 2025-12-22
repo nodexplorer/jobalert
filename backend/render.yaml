@@ -1,0 +1,73 @@
+services:
+  # Backend API
+  - type: web
+    name: x-job-bot-api
+    env: python
+    region: oregon
+    plan: starter  # $7/month
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: x-job-bot-db
+          property: connectionString
+      - key: REDIS_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: FRONTEND_URL
+        value: https://your-frontend.vercel.app
+    
+  # Celery Worker (Background Jobs)
+  - type: worker
+    name: x-job-bot-worker
+    env: docker
+    region: oregon
+    plan: starter  # $7/month
+    dockerfilePath: ./backend/Dockerfile
+    dockerCommand: celery -A app.core.celery_app worker --loglevel=info
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: x-job-bot-db
+          property: connectionString
+      - key: REDIS_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+
+  # Celery Beat (Scheduler)
+  - type: worker
+    name: x-job-bot-beat
+    env: docker
+    region: oregon
+    plan: starter  # $7/month
+    dockerfilePath: ./backend/Dockerfile
+    dockerCommand: celery -A app.core.celery_app beat --loglevel=info
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: x-job-bot-db
+          property: connectionString
+      - key: REDIS_URL
+        sync: false
+
+# Database
+databases:
+  - name: x-job-bot-db
+    databaseName: jobbot
+    user: jobbot
+    plan: free  # FREE tier (500MB)

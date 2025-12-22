@@ -50,3 +50,21 @@ class NotificationService:
             print(f"❌ Telegram error: {e}")
             return False
 
+    @staticmethod
+    async def send_test_notification(user) -> bool:
+        """Send a test notification to check configuration"""
+        email_sent = NotificationService.send_email(
+            to_email=user.email,
+            subject="🔔 Test Notification from Job Alerts",
+            body=f"Hello {user.email},\n\nThis is a test notification to verify your settings are working correctly.\n\nBest,\nJob Alerts Team"
+        )
+        
+        telegram_sent = False
+        if user.telegram_chat_id:
+            telegram_sent = await NotificationService.send_telegram(
+                chat_id=user.telegram_chat_id,
+                message="🔔 Test Notification from Job Alerts\n\nYour Telegram alerts are working!"
+            )
+            
+        return email_sent or telegram_sent
+

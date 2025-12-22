@@ -17,6 +17,13 @@ class Job(Base):
     posted_at = Column(DateTime(timezone=True))
     engagement = Column(JSON, default=dict)  # likes, retweets, replies
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    content_fingerprint = Column(String, index=True)  # SHA256 hash
+    is_duplicate = Column(Boolean, default=False, index=True)
+    original_job_id = Column(Integer, ForeignKey('jobs.id'), nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship to original job
+    original_job = relationship("Job", remote_side=[id], backref="duplicates")
 
 
 class Notification(Base):

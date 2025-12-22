@@ -6,6 +6,9 @@ import AuthCallback from './pages/authcallback';
 import Dashboard from './pages/Dashboard';
 import Registration from './pages/registration';
 import ProtectedRoute from './components/ProtectedRoute';
+import BiometricSetup from './pages/BiometricSetup';
+import Settings from './pages/Settings';
+import NotificationHistory from './pages/NotificationHistory';
 
 function App() {
   return (
@@ -22,6 +25,30 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/biometric-setup"
+          element={
+            <ProtectedRoute>
+              <BiometricSetup />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationHistory />
             </ProtectedRoute>
           }
         />

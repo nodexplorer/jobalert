@@ -1,8 +1,8 @@
-// FILE: src/hooks/useSettings.ts (Custom Hook)
-// ============================================================================
+// src/hooks/useSettings.ts (Custom Hook)
 
 import { useState, useEffect } from 'react';
-import { settingsAPI, UserSettings } from '../services/settingsAPI';
+import { settingsAPI } from '../services/settingsApi';
+import type { UserSettings, ContactChannels, AlertSettings } from '../services/settingsApi';
 import { toast } from 'react-hot-toast'; // Install: npm install react-hot-toast
 
 export function useSettings() {
@@ -41,21 +41,22 @@ export function useSettings() {
     }
   };
 
-  const updateContactChannels = async (data: any) => {
+  const updateContactChannels = async (data: ContactChannels) => {
     try {
       setSaving(true);
       await settingsAPI.updateContactChannels(data);
       await loadSettings();
       toast.success('Contact channels updated!');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to update contact channels:', error);
-      toast.error(error.response?.data?.detail || 'Failed to update');
+      // specific error handling for axios response
+      toast.error((error as any).response?.data?.detail || 'Failed to update');
     } finally {
       setSaving(false);
     }
   };
 
-  const updateAlertSettings = async (data: any) => {
+  const updateAlertSettings = async (data: AlertSettings) => {
     try {
       setSaving(true);
       await settingsAPI.updateAlertSettings(data);

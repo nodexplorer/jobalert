@@ -15,6 +15,7 @@ class User(Base):
     profile_image = Column(String)  # NEW - Avatar URL
     hashed_password = Column(String, nullable=True)  # Optional for OAuth users
     preferences = Column(JSON, default=list)
+    is_admin = Column(Boolean, default=False) 
     is_active = Column(Boolean, default=True)
     alert_speed = Column(String, default="instant")  # instant, 30mins, hourly
     keywords = Column(JSON, default=list)
@@ -25,3 +26,8 @@ class User(Base):
     alert_speed = Column(String, default='instant'),
     keywords = Column(JSON, default=list)
     is_pro = Column(Boolean, default=False)
+    last_login = Column(DateTime, nullable=True)
+    deleted_at = Column(DateTime, nullable=True)  # ⭐ ADD THIS (soft delete)
+    
+    # Relationships
+    notifications = relationship("Notification", back_populates="user")

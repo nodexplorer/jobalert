@@ -26,7 +26,7 @@ export const authAPI = {
 
   login: (email: string, password: string) =>
     api.post('/api/auth/login', { email, password }),
-    
+
   loginWithTwitter: () => {
     window.location.href = `${API_URL}/api/auth/twitter/login`;
   },
@@ -47,6 +47,27 @@ export const jobsAPI = {
 
   getStats: () =>
     api.get('/api/stats').then(res => res.data),
+};
+
+// User endpoints
+export const userAPI = {
+  getUserDashboard: (timeRange = 'week') =>
+    api.get(`/api/analytics/user/dashboard?time_range=${timeRange}`).then(res => res.data),
+};
+
+// Admin endpoints
+export const adminAPI = {
+  getAdminOverview: () =>
+    api.get('/api/admin/overview').then(res => res.data),
+
+  getAdminUsers: (page: number = 1, search: string = '') =>
+    api.get('/api/admin/users', {
+      params: {
+        skip: (page - 1) * 50,
+        limit: 50,
+        search
+      }
+    }).then(res => res.data),
 };
 
 export default api;
