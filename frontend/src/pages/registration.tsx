@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Send, Zap, CheckCircle2, Clock, Check, Fingerprint, Shield } from 'lucide-react';
+import { authAPI } from '../services/api';
 
 type Step = 'registration' | 'categories' | 'alerts' | 'frequency' | 'biometric' | 'success';
 type AlertFrequency = 'instant' | '30mins' | 'hourly';
@@ -25,14 +27,24 @@ const jobCategories = [
 ];
 
 export default function JobAlertsApp() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState<Step>('registration');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [biometricEnabled, setBiometricEnabled] = useState(false);
 
-  const [registrationData] = useState<RegistrationData>({
-    email: 'user@example.com',
+  // Initialize step from URL
+  useEffect(() => {
+    const step = searchParams.get('step') as Step;
+    if (step && ['categories', 'alerts', 'frequency', 'biometric', 'success'].includes(step)) {
+      setCurrentStep(step);
+    }
+  }, [searchParams]);
+
+  const [registrationData, setRegistrationData] = useState<RegistrationData>({
+    email: '',
     password: '',
   });
 
@@ -43,13 +55,19 @@ export default function JobAlertsApp() {
     alertFrequency: 'instant',
   });
 
-  // Mock Twitter login
+  useEffect(() => {
+    if (currentStep === 'success') {
+      const timer = setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep, navigate]);
+
+  // Twitter login
   const handleTwitterLogin = () => {
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setCurrentStep('categories');
-    }, 1000);
+    authAPI.loginWithTwitter();
   };
 
   const toggleCategory = (categoryId: string) => {
@@ -81,8 +99,22 @@ export default function JobAlertsApp() {
     }));
   };
 
-  const handleContinueFromFrequency = () => {
-    setCurrentStep('biometric');
+  const handleContinueFromFrequency = async () => {
+    setLoading(true);
+    try {
+      await authAPI.onboarding(
+        onboardingData.telegram || null,
+        onboardingData.jobCategories,
+        onboardingData.alertFrequency,
+        onboardingData.inAppNotifications
+      );
+      setLoading(false);
+      setCurrentStep('biometric');
+    } catch (err) {
+      console.error('Onboarding error:', err);
+      setError('Failed to save preferences. Please try again.');
+      setLoading(false);
+    }
   };
 
   const checkBiometricSupport = async () => {
@@ -203,6 +235,28 @@ export default function JobAlertsApp() {
             <div className="max-w-md w-full">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Get Started</h2>
               <p className="text-gray-600 mb-8">Create an account to start receiving job alerts</p>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={registrationData.email}
+                  onChange={(e) => setRegistrationData(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                  placeholder="your@email.com"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password (optional)</label>
+                <input
+                  type="password"
+                  value={registrationData.password}
+                  onChange={(e) => setRegistrationData(prev => ({ ...prev, password: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent"
+                  placeholder="Password"
+                />
+              </div>
 
               <button
                 onClick={handleTwitterLogin}

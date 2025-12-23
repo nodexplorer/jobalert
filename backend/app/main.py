@@ -3,7 +3,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.config import settings
 from app.core.database import get_db, engine, Base
 from app.core.security import hash_password, verify_password, create_access_token, get_current_user
@@ -65,7 +65,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     """Login user"""
     db_user = db.query(User).filter(User.email == user.email).first()
     
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
+    if not db_user or not db_user.hashed_password or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     access_token = create_access_token(data={"sub": str(db_user.id)})
@@ -90,10 +90,10 @@ def onboarding(
     
     # Update user with onboarding data
     if data.telegram_id:
-        db_user.telegram_chat_id = data.telegram_id
-    db_user.preferences = data.preferences
-    db_user.alert_frequency = data.alert_frequency
-    db_user.in_app_notifications = data.in_app_notifications
+        db_user.telegram_chat_id = str(data.telegram_id) if data.telegram_id else None
+        db_user.preferences = data.preferences
+        db_user.alert_speed = data.alert_speed
+        db_user.in_app_notifications = data.in_app_notifications
     
     db.commit()
     db.refresh(db_user)
@@ -102,7 +102,7 @@ def onboarding(
 
 @app.get("/api/jobs", response_model=List[JobResponse])
 def get_jobs(
-    category: str = None,
+    category: Optional[str] = None,
     limit: int = 50,
     db: Session = Depends(get_db)
 ):

@@ -1,7 +1,6 @@
-// FILE: backend/app/models/push_subscription.py
-// ============================================================================
+# FILE: backend/app/models/push_subscription.py
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.sql import func
 from app.core.database import Base
 

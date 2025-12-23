@@ -1,36 +1,29 @@
 # backend/app/models/job.py
 
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Text
+from typing import Optional, Dict, Any
+from sqlalchemy import Integer, String, DateTime, JSON, Text, Boolean, ForeignKey
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy.sql import func
+from datetime import datetime
 from app.core.database import Base
 
 class Job(Base):
     __tablename__ = "jobs"
     
-    id = Column(Integer, primary_key=True, index=True)
-    tweet_id = Column(String, unique=True, index=True, nullable=False)
-    tweet_url = Column(String, nullable=False)
-    author = Column(String)
-    username = Column(String, index=True)
-    text = Column(Text)
-    category = Column(String, index=True)  # video_editing, web_development, etc.
-    posted_at = Column(DateTime(timezone=True))
-    engagement = Column(JSON, default=dict)  # likes, retweets, replies
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    content_fingerprint = Column(String, index=True)  # SHA256 hash
-    is_duplicate = Column(Boolean, default=False, index=True)
-    original_job_id = Column(Integer, ForeignKey('jobs.id'), nullable=True)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    tweet_id: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    tweet_url: Mapped[str] = mapped_column(String, nullable=False)
+    author: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    username: Mapped[Optional[str]] = mapped_column(String, index=True, nullable=True)
+    text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    category: Mapped[Optional[str]] = mapped_column(String, index=True, nullable=True)
+    posted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    engagement: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    content_fingerprint: Mapped[Optional[str]] = mapped_column(String, index=True, nullable=True)
+    is_duplicate: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    original_job_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('jobs.id'), nullable=True)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=True)
     
     # Relationship to original job
     original_job = relationship("Job", remote_side=[id], backref="duplicates")
-
-
-class Notification(Base):
-    __tablename__ = "notifications"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True)
-    job_id = Column(Integer, index=True)
-    notification_type = Column(String)  # email, telegram
-    sent_at = Column(DateTime(timezone=True), server_default=func.now())

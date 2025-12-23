@@ -16,15 +16,15 @@ class UserLogin(BaseModel):
 class UserOnboarding(BaseModel):
     telegram_id: Optional[str] = None
     preferences: List[str]
-    alert_frequency: str = "instant"
+    alert_speed: str = "instant"
     in_app_notifications: bool = True
 
 class UserResponse(BaseModel):
     id: int
-    email: str
+    email: Optional[str]
     preferences: List[str]
     telegram_chat_id: Optional[str]
-    alert_frequency: str
+    alert_speed: str
     in_app_notifications: bool
     created_at: datetime
     

@@ -31,11 +31,11 @@ export const authAPI = {
     window.location.href = `${API_URL}/api/auth/twitter/login`;
   },
 
-  onboarding: (telegram_id: string | null, preferences: string[], alert_frequency: string, in_app_notifications: boolean) =>
+  onboarding: (telegram_id: string | null, preferences: string[], alert_speed: string, in_app_notifications: boolean) =>
     api.post('/api/auth/onboarding', {
       telegram_id,
       preferences,
-      alert_frequency,
+      alert_speed,
       in_app_notifications,
     }),
 };

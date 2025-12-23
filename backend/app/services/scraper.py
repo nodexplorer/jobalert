@@ -4,8 +4,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.webdriver import WebDriver
 from webdriver_manager.chrome import ChromeDriverManager
-from typing import List, Dict
+from typing import List, Dict, Optional
 from datetime import datetime
 import time
 
@@ -13,7 +14,7 @@ class TwitterScraper:
     """Scrapes Twitter/X for job postings"""
     
     def __init__(self, headless: bool = True):
-        self.driver = None
+        self.driver: Optional[WebDriver] = None
         self.headless = headless
     
     def setup(self):
@@ -33,6 +34,7 @@ class TwitterScraper:
         if not self.driver:
             self.setup()
         
+        assert self.driver is not None, "Driver failed to initialize"
         jobs = []
         url = f"https://twitter.com/search?q={query.replace(' ', '%20')}&f=live"
         

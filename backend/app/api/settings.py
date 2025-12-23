@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.get("/settings/profile", response_model=UserSettingsResponse)
-async def get_user_settings(
+def get_user_settings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -38,7 +38,7 @@ async def get_user_settings(
 
 
 @router.put("/settings/profile")
-async def update_profile(
+def update_profile(
     settings: UserSettingsUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -59,7 +59,7 @@ async def update_profile(
 
 
 @router.put("/settings/contact-channels")
-async def update_contact_channels(
+def update_contact_channels(
     channels: ContactChannelsUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -96,7 +96,7 @@ async def update_contact_channels(
 
 
 @router.put("/settings/alerts")
-async def update_alert_settings(
+def update_alert_settings(
     settings: AlertSettingsUpdate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -128,7 +128,7 @@ async def update_alert_settings(
 
 
 @router.put("/settings/preferences")
-async def update_job_preferences(
+def update_job_preferences(
     preferences: List[str],
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -162,7 +162,7 @@ async def update_job_preferences(
 
 
 @router.post("/settings/upload-avatar")
-async def upload_avatar(
+def upload_avatar(
     # file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -178,7 +178,7 @@ async def upload_avatar(
 
 
 @router.delete("/settings/disconnect-account")
-async def disconnect_account(
+def disconnect_account(
     provider: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -207,14 +207,14 @@ async def disconnect_account(
 
 
 @router.get("/settings/stats")
-async def get_user_stats(
+def get_user_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Get user statistics for Quick Links"""
     
     # TODO: Calculate real stats from database
-    from app.models.job import Notification
+    from app.models.notification import Notification
     from sqlalchemy import func
     
     # Count notifications sent

@@ -1,4 +1,4 @@
-# FILE: backend/app/services/notification_service.py
+# backend/app/services/notification_service.py
 
 from sqlalchemy.orm import Session
 from app.models.user import User
@@ -19,15 +19,20 @@ class NotificationService:
     def send_job_notification(self, user: User, job: Job):
         """Send notification about new job to user"""
         
+        # Safe defaults for optional fields
+        category = job.category or "general"
+        username = job.username or "Unknown"
+        text = job.text or "No description available"
+        
         # Create notification record
         notification = Notification(
             user_id=user.id,
             job_id=job.id,
-            title=f"New {job.category.replace('_', ' ').title()} Job!",
-            message=f"@{job.username}: {job.text[:200]}...",
+            title=f"New {category.replace('_', ' ').title()} Job!",
+            message=f"@{username}: {text[:200]}{'...' if len(text) > 200 else ''}",
             notification_type='job_alert',
-            job_title=job.text[:100],
-            job_category=job.category,
+            job_title=text[:100],
+            job_category=category,
             job_url=job.tweet_url,
             is_read=False,
             is_clicked=False
@@ -55,18 +60,24 @@ class NotificationService:
             if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
                 return False
             
+            # Safe defaults for optional fields
+            category = job.category or "general"
+            username = job.username or "Unknown"
+            text = job.text or "No description available"
+            display_name = user.display_name or user.username
+            
             msg = MIMEMultipart()
             msg['From'] = settings.SMTP_USER
-            msg['To'] = user.email
-            msg['Subject'] = f"🎯 New {job.category.replace('_', ' ').title()} Job on X!"
+            msg['To'] = user.email or ""
+            msg['Subject'] = f"🎯 New {category.replace('_', ' ').title()} Job on X!"
             
             body = f"""
-Hello {user.display_name or user.username}!
+Hello {display_name}!
 
 A new job matching your preferences was just posted on X:
 
-👤 Posted by: @{job.username}
-📝 Job: {job.text[:300]}{'...' if len(job.text) > 300 else ''}
+👤 Posted by: @{username}
+📝 Job: {text[:300]}{'...' if len(text) > 300 else ''}
 
 🔗 Apply now: {job.tweet_url}
 
@@ -96,10 +107,14 @@ Manage your alerts: {settings.FRONTEND_URL}/settings
             if not settings.TELEGRAM_BOT_TOKEN:
                 return False
             
+            # Safe defaults for optional fields
+            username = job.username or "Unknown"
+            text = job.text or "No description available"
+            
             # TODO: Implement telegram bot sending
             # import telegram
             # bot = telegram.Bot(token=settings.TELEGRAM_BOT_TOKEN)
-            # message = f"🎯 New Job!\n\n@{job.username}: {job.text[:200]}...\n\n{job.tweet_url}"
+            # message = f"🎯 New Job!\n\n@{username}: {text[:200]}...\n\n{job.tweet_url}"
             # bot.send_message(chat_id=user.telegram_chat_id, text=message)
             
             return True
@@ -116,6 +131,7 @@ Manage your alerts: {settings.FRONTEND_URL}/settings
 from app.core.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.services.job_scraping_service import JobScrapingService
+from datetime import datetime
 
 @celery_app.task
 def scrape_twitter_jobs():

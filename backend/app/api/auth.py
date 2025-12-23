@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import RedirectResponse
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from tweepy import OAuth2UserHandler
 import urllib.parse
@@ -21,7 +21,7 @@ oauth_states = {}
 
 
 async def get_current_user(
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """
@@ -127,7 +127,8 @@ async def twitter_callback(
         twitter_user = me.data  # type: ignore
         
         # Check if user exists in database
-        user = db.query(User).filter(User.twitter_id == str(twitter_user.id)).first()
+        twitter_id_str = str(twitter_user.id)
+        user = db.query(User).filter(User.twitter_id == twitter_id_str).first()
         
         if not user:
             # Create new user

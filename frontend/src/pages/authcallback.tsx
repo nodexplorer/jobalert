@@ -26,10 +26,10 @@ export default function AuthCallback() {
       if (token) {
         try {
           await authService.handleCallback(token);
-          
+
           // Redirect based on user status
           if (isNewUser) {
-            navigate('/onboarding');  // Setup preferences
+            navigate('/register?step=categories');  // Setup preferences
           } else {
             navigate('/dashboard');   // Go to dashboard
           }
