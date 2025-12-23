@@ -1,16 +1,14 @@
 // src/components/Statcard.tsx
 
+import React from 'react';
 import { ExternalLink, Trash2, Check, Mail, Smartphone, Send } from 'lucide-react';
 import type { Notification } from '../types';
 
-
-
-// Stat Card Component
 // Stat Card Component
 interface StatCardProps {
     label: string;
     value: number | string;
-    icon: any; // Keeping any for flexibility, but treating it as a component in render
+    icon: React.ComponentType<{ className?: string }>;
     color: 'blue' | 'red' | 'green' | 'purple' | 'orange';
     trend?: number;
 }

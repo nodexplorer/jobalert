@@ -12,8 +12,8 @@ export const authService = {
   handleCallback: async (token: string) => {
     localStorage.setItem('token', token);
     
-    // Get user info
-    const response = await api.get(`/api/auth/me?token=${token}`);
+    // Get user info (token is sent via Authorization header by interceptor)
+    const response = await api.get('/api/auth/me');
     localStorage.setItem('user', JSON.stringify(response.data));
     
     return response.data;

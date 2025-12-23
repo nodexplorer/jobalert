@@ -1,7 +1,12 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
+interface ChartDataPoint {
+    date: string | number;
+    jobs: number;
+}
+
 interface SimpleBarChartProps {
-    data: any[];
+    data: ChartDataPoint[];
 }
 
 export function SimpleBarChart({ data }: SimpleBarChartProps) {

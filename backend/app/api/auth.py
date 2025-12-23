@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import RedirectResponse
+from fastapi.security import HTTPBearer, HTTPAuthCredentials
 from sqlalchemy.orm import Session
 from tweepy import OAuth2UserHandler
 import urllib.parse
@@ -13,9 +14,34 @@ from app.models.user import User
 from app.config import settings
 
 router = APIRouter()
+security = HTTPBearer()
 
 # OAuth state storage (use Redis in production)
 oauth_states = {}
+
+
+async def get_current_user(
+    credentials: HTTPAuthCredentials = Depends(security),
+    db: Session = Depends(get_db)
+) -> User:
+    """
+    Validate JWT token and return current user
+    """
+    token = credentials.credentials
+    payload = decode_access_token(token)
+    
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return user
 
 
 @router.get("/auth/twitter/login")
@@ -144,31 +170,18 @@ async def twitter_callback(
 
 @router.get("/auth/me")
 async def get_current_user_info(
-    token: str,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
-    Get current user info from JWT token
+    Get current user info from JWT token in Authorization header
     """
-    payload = decode_access_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
-    
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
     return {
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "display_name": user.display_name,
-        "profile_image": user.profile_image,
-        "preferences": user.preferences,
-        "created_at": user.created_at
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "display_name": current_user.display_name,
+        "profile_image": current_user.profile_image,
+        "preferences": current_user.preferences,
+        "created_at": current_user.created_at
     }
